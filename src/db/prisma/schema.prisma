@@ -15,8 +15,16 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// Gender enum
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 // Roles enum
 enum Role {
+  ADMIN
   DOCTOR
   PATIENT
   RECEPTIONIST
@@ -24,14 +32,16 @@ enum Role {
 
 // User base model
 model User {
-  id         String  @id @default(cuid())
-  email      String  @unique
+  id         String   @id @default(cuid())
+  email      String   @unique
   password   String
-  fullName   String
+  name       String
   fatherName String?
   motherName String?
+  dob        DateTime
   mobileNo   String
   address    String?
+  gender     Gender
   role       Role
 
   doctor       Doctor?
@@ -46,8 +56,13 @@ model User {
 model Doctor {
   id String @id @default(cuid())
 
-  specialization String
-  patients       PatientOnDoctor[]
+  specialization   String
+  registrationNo   String            @unique
+  yearOfExperience Int
+  verified         Boolean           @default(false)
+  patients         PatientOnDoctor[]
+
+  isActive Boolean @default(true)
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
