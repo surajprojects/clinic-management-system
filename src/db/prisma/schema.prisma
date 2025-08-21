@@ -15,52 +15,136 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model User {
-  id       Int      @id @default(autoincrement())
-  name     String
-  email    String   @unique
-  password String
-  role     Role
-  doctor   Doctor?
-  patient  Patient?
-}
-
-model Doctor {
-  id             Int           @id @default(autoincrement())
-  userId         Int           @unique
-  specialization String
-  appointments   Appointment[]
-  user           User          @relation(fields: [userId], references: [id])
-}
-
-model Patient {
-  id             Int           @id @default(autoincrement())
-  userId         Int           @unique
-  age            Int
-  medicalHistory String?
-  appointments   Appointment[]
-  user           User          @relation(fields: [userId], references: [id])
-}
-
-model Appointment {
-  id        Int      @id @default(autoincrement())
-  doctorId  Int
-  patientId Int
-  date      DateTime
-  status    Status   @default(PENDING)
-
-  doctor  Doctor  @relation(fields: [doctorId], references: [id])
-  patient Patient @relation(fields: [patientId], references: [id])
-}
-
+// Roles enum
 enum Role {
-  RECEPTIONIST
   DOCTOR
   PATIENT
+  RECEPTIONIST
 }
 
-enum Status {
+// User base model
+model User {
+  id         String  @id @default(cuid())
+  email      String  @unique
+  password   String
+  fullName   String
+  fatherName String?
+  motherName String?
+  mobileNo   String
+  address    String?
+  role       Role
+
+  doctor       Doctor?
+  patient      Patient?
+  receptionist Receptionist?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Doctor model
+model Doctor {
+  id String @id @default(cuid())
+
+  specialization String
+  patients       PatientOnDoctor[]
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Patient model
+model Patient {
+  id String @id @default(cuid())
+
+  doctors  PatientOnDoctor[]
+  records  MedicalRecord[]
+  invoices Invoice[]
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Receptionist model
+model Receptionist {
+  id String @id @default(cuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Many-to-Many relation between Patients & Doctors
+model PatientOnDoctor {
+  patientId String @unique
+  doctorId  String @unique
+
+  patient Patient @relation(fields: [patientId], references: [id])
+  doctor  Doctor  @relation(fields: [doctorId], references: [id])
+}
+
+// Medical Records
+model MedicalRecord {
+  id String @id @default(cuid())
+
+  description String
+  diagnosis   String
+  treatment   String
+  date        DateTime @default(now())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Invoice 
+enum InvoiceStatus {
   PENDING
-  APPROVED
-  REJECTED
+  PAID
+  CANCELLED
+}
+
+model Invoice {
+  id String @id @default(uuid())
+
+  amount   Float
+  status   InvoiceStatus
+  payments Payment[]
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Payment
+enum PaymentMethod {
+  CASH
+  CARD
+  UPI
+  INSURANCE
+}
+
+model Payment {
+  id String @id @default(uuid())
+
+  amount Float
+  method PaymentMethod
+  date   DateTime      @default(now())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+
+  createdAt DateTime @default(now())
 }
