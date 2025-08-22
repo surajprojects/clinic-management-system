@@ -3,9 +3,9 @@ import bcrypt from "bcryptjs";
 import { NextRequest } from "next/server";
 import { verifyUser } from "@/lib/apiAuth";
 import { Prisma } from "@/db/generated/prisma";
-import { DoctorFormInputEdit, doctorFormInputEdit } from "@/utils/validators/doctorInput";
+import { PatientFormInputEdit, patientFormInputEdit } from "@/utils/validators/patientInput";
 
-export async function GET(req: NextRequest, { params }: { params: { doctorId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { patientId: string } }) {
     try {
         const token = await verifyUser(req);
 
@@ -13,24 +13,22 @@ export async function GET(req: NextRequest, { params }: { params: { doctorId: st
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const { doctorId } = params;
+        const { patientId } = params;
 
-        const doctorData = await prisma.doctor.findUnique({
+        const patientData = await prisma.patient.findUnique({
             where: {
-                id: doctorId,
-                isActive: true,
+                id: patientId
             },
             include: {
                 user: true,
-                patients: true,
             }
         });
 
-        if (!doctorData) {
-            return Response.json({ message: "Doctor not found!!!" }, { status: 404 });
+        if (!patientData) {
+            return Response.json({ message: "Patient not found!!!" }, { status: 404 });
         }
 
-        return Response.json({ message: "Successfully found the doctor!!!", doctorData }, { status: 200 });
+        return Response.json({ message: "Successfully found the patient!!!", patientData }, { status: 200 });
     }
     catch (error) {
         console.log(error)
@@ -38,7 +36,7 @@ export async function GET(req: NextRequest, { params }: { params: { doctorId: st
     }
 };
 
-export async function PATCH(req: NextRequest, { params }: { params: { doctorId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: { patientId: string } }) {
     try {
         const token = await verifyUser(req);
 
@@ -57,46 +55,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { doctorId: 
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const { doctorId } = params;
+        const { patientId } = params;
 
-        const data: DoctorFormInputEdit = await req.json();
-        const parsedInput = doctorFormInputEdit.safeParse(data);
+        const data: PatientFormInputEdit = await req.json();
+        const parsedInput = patientFormInputEdit.safeParse(data);
 
         if (!parsedInput.success) {
             return Response.json({ message: "Invalid input!!!", details: parsedInput.error.issues }, { status: 400 });
         }
 
-        if (parsedInput.data.registrationNo || parsedInput.data.specialization || parsedInput.data.verified || parsedInput.data.yearOfExperience) {
-            const doctorData = await prisma.doctor.update({
-                where: {
-                    id: doctorId,
-                    isActive: true,
-                },
-                data: {
-                    ...(parsedInput.data.registrationNo && { registrationNo: parsedInput.data.registrationNo }),
-                    ...(parsedInput.data.yearOfExperience && { yearOfExperience: parsedInput.data.yearOfExperience }),
-                    ...(parsedInput.data.specialization && { specialization: parsedInput.data.specialization }),
-                    ...(parsedInput.data.verified && { verified: parsedInput.data.verified }),
-                }
-            });
-
-            return Response.json({ message: "Successfully updated the doctor!!!", doctorData }, { status: 200 });
-        }
-
-        const foundDoctor = await prisma.doctor.findUnique({
+        const patientData = await prisma.user.update({
             where: {
-                id: doctorId,
-                isActive: true,
-            }
-        });
-
-        if (!foundDoctor) {
-            return Response.json({ message: "Doctor not found!!!" }, { status: 404 });
-        }
-
-        const doctorData = await prisma.user.update({
-            where: {
-                id: foundDoctor.id,
+                id: patientId,
             },
             data: {
                 ...(parsedInput.data.email && { email: parsedInput.data.email }),
@@ -111,7 +81,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { doctorId: 
             }
         });
 
-        return Response.json({ message: "Successfully updated the doctor!!!", doctorData }, { status: 200 });
+        return Response.json({ message: "Successfully updated the patient!!!", patientData }, { status: 200 });
     }
     catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
@@ -124,7 +94,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { doctorId: 
     }
 };
 
-export async function DELETE(req: NextRequest, { params }: { params: { doctorId: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: { patientId: string } }) {
     try {
         const token = await verifyUser(req);
 
@@ -143,23 +113,19 @@ export async function DELETE(req: NextRequest, { params }: { params: { doctorId:
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const { doctorId } = params;
+        const { patientId } = params;
 
-        // soft delete to maintain other related records
-        await prisma.doctor.update({
+        await prisma.user.delete({
             where: {
-                id: doctorId,
-            },
-            data: {
-                isActive: false,
+                id: patientId,
             }
         });
 
-        return Response.json({ message: "Successfully deleted the doctor!!!" }, { status: 200 });
+        return Response.json({ message: "Successfully deleted the patient!!!" }, { status: 200 });
     }
     catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-            return Response.json({ message: "Doctor not found!!!" }, { status: 404 });
+            return Response.json({ message: "Patient not found!!!" }, { status: 404 });
         }
         else {
             console.log(error);

@@ -67,8 +67,9 @@ model Doctor {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  MedicalRecord MedicalRecord[]
 }
 
 // Patient model
@@ -86,12 +87,22 @@ model Patient {
   updatedAt DateTime @updatedAt
 }
 
+enum Shift {
+  MORNING
+  AFTERNOON
+  EVENING
+  NIGHT
+}
+
 // Receptionist model
 model Receptionist {
   id String @id @default(cuid())
 
+  shift      Shift
+  deskNumber String?
+
   userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -99,11 +110,13 @@ model Receptionist {
 
 // Many-to-Many relation between Patients & Doctors
 model PatientOnDoctor {
-  patientId String @unique
-  doctorId  String @unique
+  patientId String
+  doctorId  String
 
   patient Patient @relation(fields: [patientId], references: [id])
   doctor  Doctor  @relation(fields: [doctorId], references: [id])
+
+  @@id([patientId, doctorId])
 }
 
 // Medical Records
@@ -117,6 +130,9 @@ model MedicalRecord {
 
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
+
+  doctorId String
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

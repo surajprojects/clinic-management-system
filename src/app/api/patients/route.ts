@@ -1,12 +1,36 @@
 import prisma from "@/db";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@/db/generated/prisma";
-import { userFormInput, UserFormInput } from "@/utils/validators/userInput";
+import { PatientFormInput, patientFormInput } from "@/utils/validators/patientInput";
+import { verifyUser } from "@/lib/apiAuth";
+import { NextRequest } from "next/server";
+
+export async function GET(req: NextRequest) {
+    try {
+        const token = await verifyUser(req);
+
+        if (!token) {
+            return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
+        }
+
+        const allPatients = await prisma.patient.findMany({});
+
+        if (allPatients.length <= 0) {
+            return Response.json({ message: "Patients not found!!!" }, { status: 404 });
+        }
+
+        return Response.json({ message: "Successfully found all patients!!!", allPatients }, { status: 200 });
+    }
+    catch (error) {
+        console.log(error);
+        return Response.json({ message: "Internal Server Error" }, { status: 500 });
+    }
+};
 
 export async function POST(req: Request) {
     try {
-        const data: UserFormInput = await req.json();
-        const parsedInput = userFormInput.safeParse(data);
+        const data: PatientFormInput = await req.json();
+        const parsedInput = patientFormInput.safeParse(data);
 
         if (!parsedInput.success) {
             return Response.json({ message: "Invalid input!!!", details: parsedInput.error.issues }, { status: 400 });
@@ -29,7 +53,7 @@ export async function POST(req: Request) {
             }
         });
 
-        return Response.json({ message: "Successfully created the user!!!" }, { status: 201 });
+        return Response.json({ message: "Successfully created the patient!!!" }, { status: 201 });
     }
     catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
