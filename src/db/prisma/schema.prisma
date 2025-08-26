@@ -57,28 +57,33 @@ model Doctor {
   id String @id @default(cuid())
 
   specialization   String
-  registrationNo   String            @unique
+  registrationNo   String  @unique
   yearOfExperience Int
-  verified         Boolean           @default(false)
-  patients         PatientOnDoctor[]
+  verified         Boolean @default(false)
+
+  patients       PatientOnDoctor[]
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
 
   isActive Boolean @default(true)
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
 
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  MedicalRecord MedicalRecord[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Patient model
 model Patient {
   id String @id @default(cuid())
 
-  doctors  PatientOnDoctor[]
-  records  MedicalRecord[]
-  invoices Invoice[]
+  doctors      PatientOnDoctor[]
+  records      MedicalRecord[]
+  invoices     Invoice[]
+  appointments Appointment[]
+
+  isActive Boolean @default(true)
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
@@ -105,6 +110,8 @@ model Receptionist {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  isActive Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -128,6 +135,8 @@ model MedicalRecord {
   diagnosis   String
   treatment   String
   date        DateTime @default(now())
+
+  isActive Boolean @default(true)
 
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
@@ -153,6 +162,8 @@ model InvoiceItem {
   description String?
   itemType    ItemType
   rate        Float
+
+  isActive Boolean @default(true)
 
   InvoiceLine InvoiceLine[]
 
@@ -203,6 +214,8 @@ model Invoice {
   items    InvoiceLine[]
   payments Payment[]
 
+  isActive Boolean @default(true)
+
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
 
@@ -226,8 +239,41 @@ model Payment {
   method PaymentMethod
   date   DateTime      @default(now())
 
+  isActive Boolean @default(true)
+
   invoiceId String
   invoice   Invoice @relation(fields: [invoiceId], references: [id])
 
   createdAt DateTime @default(now())
+}
+
+// Appointment status enum
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NOTSHOWED
+}
+
+// Appointment model
+model Appointment {
+  id          String            @id @default(cuid())
+  date        DateTime
+  tokenNumber Int
+  reason      String?
+  status      AppointmentStatus @default(SCHEDULED)
+
+  patientId String
+  doctorId  String
+
+  bookedByRole Role
+  bookedById   String
+
+  isActive Boolean @default(true)
+
+  patient Patient @relation(fields: [patientId], references: [id])
+  doctor  Doctor  @relation(fields: [doctorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

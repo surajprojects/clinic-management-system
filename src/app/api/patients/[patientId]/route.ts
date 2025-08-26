@@ -96,28 +96,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { patientId:
 
 export async function DELETE(req: NextRequest, { params }: { params: { patientId: string } }) {
     try {
-        const token = await verifyUser(req);
+        const token = await verifyUser(req, ["ADMIN"]);
 
         if (!token) {
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const isAdmin = await prisma.user.findUnique({
-            where: {
-                role: "ADMIN",
-                email: String(token.email),
-            }
-        });
-
-        if (!isAdmin) {
-            return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
-        }
-
         const { patientId } = params;
 
-        await prisma.user.delete({
+        // soft delete to maintain other related records
+        await prisma.patient.update({
             where: {
                 id: patientId,
+            },
+            data: {
+                isActive: false,
             }
         });
 

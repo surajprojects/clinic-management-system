@@ -2,9 +2,9 @@ import prisma from "@/db";
 import { NextRequest } from "next/server";
 import { verifyUser } from "@/lib/apiAuth";
 import { Prisma } from "@/db/generated/prisma";
-import { InvoiceItemFormInputEdit, invoiceItemFormInputEdit } from "@/utils/validators/invoiceItemInput";
+import { InvoiceFormInputEdit, invoiceFormInputEdit } from "@/utils/validators/invoiceInput";
 
-export async function GET(req: NextRequest, { params }: { params: { itemId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { invoiceId: string } }) {
     try {
         const token = await verifyUser(req);
 
@@ -12,20 +12,19 @@ export async function GET(req: NextRequest, { params }: { params: { itemId: stri
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const { itemId } = params;
+        const { invoiceId } = params;
 
-        const itemData = await prisma.invoiceItem.findUnique({
+        const invoiceData = await prisma.invoice.findUnique({
             where: {
-                id: itemId,
-                isActive: true,
+                id: invoiceId,
             },
         });
 
-        if (!itemData) {
-            return Response.json({ message: "Invoice item not found!!!" }, { status: 404 });
+        if (!invoiceData) {
+            return Response.json({ message: "Invoice not found!!!" }, { status: 404 });
         }
 
-        return Response.json({ message: "Successfully found the invoice item!!!", itemData }, { status: 200 });
+        return Response.json({ message: "Successfully found the invoice!!!", invoiceData }, { status: 200 });
     }
     catch (error) {
         console.log(error)
@@ -33,7 +32,7 @@ export async function GET(req: NextRequest, { params }: { params: { itemId: stri
     }
 };
 
-export async function PATCH(req: NextRequest, { params }: { params: { itemId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: { invoiceId: string } }) {
     try {
         const token = await verifyUser(req);
 
@@ -41,32 +40,29 @@ export async function PATCH(req: NextRequest, { params }: { params: { itemId: st
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const data: InvoiceItemFormInputEdit = await req.json();
-        const parsedInput = invoiceItemFormInputEdit.safeParse(data);
+        const data: InvoiceFormInputEdit = await req.json();
+        const parsedInput = invoiceFormInputEdit.safeParse(data);
 
         if (!parsedInput.success) {
             return Response.json({ message: "Invalid input!!!", details: parsedInput.error.issues }, { status: 400 });
         }
 
-        const { itemId } = params;
+        const { invoiceId } = params;
 
-        const itemData = await prisma.invoiceItem.update({
+        const itemData = await prisma.invoice.update({
             where: {
-                id: itemId,
+                id: invoiceId,
             },
             data: {
-                ...(parsedInput.data.itemType && { itemType: parsedInput.data.itemType }),
-                ...(parsedInput.data.name && { name: parsedInput.data.name }),
-                ...(parsedInput.data.description && { description: parsedInput.data.description }),
-                ...(parsedInput.data.rate && { rate: parsedInput.data.rate }),
+                ...(parsedInput.data.grandTotal && { grandTotal: parsedInput.data.grandTotal }),
             }
         });
 
-        return Response.json({ message: "Successfully updated the invoice item!!!", itemData }, { status: 200 });
+        return Response.json({ message: "Successfully updated the invoice!!!", itemData }, { status: 200 });
     }
     catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-            return Response.json({ message: "Invoice item not found!!!" }, { status: 404 });
+            return Response.json({ message: "Invoice not found!!!" }, { status: 404 });
         }
         else {
             console.log(error);
@@ -75,7 +71,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { itemId: st
     }
 };
 
-export async function DELETE(req: NextRequest, { params }: { params: { itemId: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: { invoiceId: string } }) {
     try {
         const token = await verifyUser(req);
 
@@ -83,23 +79,23 @@ export async function DELETE(req: NextRequest, { params }: { params: { itemId: s
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const { itemId } = params;
+        const { invoiceId } = params;
 
         // soft delete to maintain other related records
-        await prisma.doctor.update({
+        await prisma.invoice.update({
             where: {
-                id: itemId,
+                id: invoiceId,
             },
             data: {
                 isActive: false,
             }
         });
 
-        return Response.json({ message: "Successfully deleted the invoice item!!!" }, { status: 200 });
+        return Response.json({ message: "Successfully deleted the invoice!!!" }, { status: 200 });
     }
     catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-            return Response.json({ message: "Invoice item not found!!!" }, { status: 404 });
+            return Response.json({ message: "Invoice not found!!!" }, { status: 404 });
         }
         else {
             console.log(error);

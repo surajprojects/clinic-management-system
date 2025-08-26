@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        const token = await verifyUser(req, "ADMIN");
+        const token = await verifyUser(req, ["ADMIN"]);
 
         if (!token) {
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });

@@ -40,20 +40,9 @@ export async function GET(req: NextRequest, { params }: { params: { doctorId: st
 
 export async function PATCH(req: NextRequest, { params }: { params: { doctorId: string } }) {
     try {
-        const token = await verifyUser(req);
+        const token = await verifyUser(req, ["ADMIN"]);
 
         if (!token) {
-            return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
-        }
-
-        const isAdmin = await prisma.user.findUnique({
-            where: {
-                role: "ADMIN",
-                email: String(token.email),
-            }
-        });
-
-        if (!isAdmin) {
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 

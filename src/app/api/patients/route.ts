@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     }
 };
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
         const data: PatientFormInput = await req.json();
         const parsedInput = patientFormInput.safeParse(data);

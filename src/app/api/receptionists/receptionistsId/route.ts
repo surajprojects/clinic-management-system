@@ -120,48 +120,33 @@ export async function PATCH(req: NextRequest, { params }: { params: { receptioni
 
 export async function DELETE(req: NextRequest, { params }: { params: { receptionistId: string } }) {
     try {
-        const token = await verifyUser(req);
+        const token = await verifyUser(req, ["ADMIN"]);
 
         if (!token) {
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const isAdmin = await prisma.user.findUnique({
-            where: {
-                role: "ADMIN",
-                email: String(token.email),
-            }
-        });
-
-        if (!isAdmin) {
-            return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
-        }
-
         const { receptionistId } = params;
 
-        const foundReceptionist = await prisma.receptionist.findUnique({
+        // soft delete to maintain other related records
+        await prisma.receptionist.update({
             where: {
                 id: receptionistId,
-            }
-        });
-
-        if (!foundReceptionist) {
-            return Response.json({ message: "Receptionist not found!!!" }, { status: 404 });
-        }
-
-        await prisma.user.delete({
-            where: {
-                id: foundReceptionist.id,
-                receptionist: {
-                    id: receptionistId
-                }
+            },
+            data: {
+                isActive: false,
             }
         });
 
         return Response.json({ message: "Successfully deleted the receptionist!!!" }, { status: 200 });
     }
     catch (error) {
-        console.log(error);
-        return Response.json({ message: "Internal Server Error" }, { status: 500 });
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+            return Response.json({ message: "Receptionist not found!!!" }, { status: 404 });
+        }
+        else {
+            console.log(error);
+            return Response.json({ message: "Internal Server Error" }, { status: 500 });
+        }
     }
 };
