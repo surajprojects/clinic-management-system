@@ -87,6 +87,7 @@ model Patient {
   updatedAt DateTime @updatedAt
 }
 
+// Shift enum
 enum Shift {
   MORNING
   AFTERNOON
@@ -108,7 +109,7 @@ model Receptionist {
   updatedAt DateTime @updatedAt
 }
 
-// Many-to-Many relation between Patients & Doctors
+// Many-to-Many relation between Patients & Doctors (junction table)
 model PatientOnDoctor {
   patientId String
   doctorId  String
@@ -119,7 +120,7 @@ model PatientOnDoctor {
   @@id([patientId, doctorId])
 }
 
-// Medical Records
+// Medical records model
 model MedicalRecord {
   id String @id @default(cuid())
 
@@ -138,18 +139,68 @@ model MedicalRecord {
   updatedAt DateTime @updatedAt
 }
 
-// Invoice 
+// Item type enum
+enum ItemType {
+  GOODS
+  SERVICES
+}
+
+// Invoice item model
+model InvoiceItem {
+  id String @id @default(cuid())
+
+  name        String
+  description String?
+  itemType    ItemType
+  rate        Float
+
+  InvoiceLine InvoiceLine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model InvoiceLine {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+
+  itemId String
+  item   InvoiceItem @relation(fields: [itemId], references: [id])
+
+  quantity Int
+  rate     Float
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Invoice enum
 enum InvoiceStatus {
   PENDING
   PAID
+  ONHOLD
   CANCELLED
 }
 
+// Invoice model
 model Invoice {
-  id String @id @default(uuid())
+  id            String @id @default(cuid())
+  invoiceNumber String @unique
 
-  amount   Float
-  status   InvoiceStatus
+  status      InvoiceStatus
+  description String?
+  dueDate     DateTime?
+
+  subTotal   Float
+  discount   Float?
+  tax        Float?
+  grandTotal Float
+
+  items    InvoiceLine[]
   payments Payment[]
 
   patientId String
@@ -159,7 +210,7 @@ model Invoice {
   updatedAt DateTime @updatedAt
 }
 
-// Payment
+// Payment enum
 enum PaymentMethod {
   CASH
   CARD
@@ -167,8 +218,9 @@ enum PaymentMethod {
   INSURANCE
 }
 
+// Payment model
 model Payment {
-  id String @id @default(uuid())
+  id String @id @default(cuid())
 
   amount Float
   method PaymentMethod
