@@ -38,9 +38,9 @@ export const authOptions: NextAuthOptions = {
             },
         }),
     ],
-    // pages: {
-    //     signIn: "/",
-    // },
+    pages: {
+        signIn: "/",
+    },
     session: {
         strategy: "jwt",
     },
@@ -58,7 +58,7 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 session.user.name = token.name;
                 session.user.email = token.email;
-                (session.user as any).role = token.role;
+                session.user.role = token.role as string;
             }
             return session;
         },
