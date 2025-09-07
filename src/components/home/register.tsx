@@ -9,7 +9,7 @@ import axiosInstance from "@/utils/axios";
 import { toast } from "react-toastify";
 import Spinner from "@/components/ui/spinner";
 
-export default function Register() {
+export default function RegisterForm() {
     const router = useRouter();
     const initialData = {
         name: "",

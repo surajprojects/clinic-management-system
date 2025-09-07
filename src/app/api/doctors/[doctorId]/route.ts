@@ -5,7 +5,9 @@ import { verifyUser } from "@/lib/apiAuth";
 import { Prisma } from "@/db/generated/prisma";
 import { DoctorFormInputEdit, doctorFormInputEdit } from "@/utils/validators/doctorInput";
 
-export async function GET(req: NextRequest, { params }: { params: { doctorId: string } }) {
+export async function GET(req: NextRequest,
+    { params }: { params: Promise<{ doctorId: string }> }
+) {
     try {
         const token = await verifyUser(req);
 
@@ -13,7 +15,7 @@ export async function GET(req: NextRequest, { params }: { params: { doctorId: st
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const { doctorId } = params;
+        const { doctorId } = await params;
 
         const doctorData = await prisma.doctor.findUnique({
             where: {
@@ -38,7 +40,9 @@ export async function GET(req: NextRequest, { params }: { params: { doctorId: st
     }
 };
 
-export async function PATCH(req: NextRequest, { params }: { params: { doctorId: string } }) {
+export async function PATCH(req: NextRequest,
+    { params }: { params: Promise<{ doctorId: string }> }
+) {
     try {
         const token = await verifyUser(req, ["ADMIN"]);
 
@@ -46,12 +50,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { doctorId: 
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const { doctorId } = params;
+        const { doctorId } = await params;
 
         const data: DoctorFormInputEdit = await req.json();
         const parsedInput = doctorFormInputEdit.safeParse(data);
 
         if (!parsedInput.success) {
+            console.log(parsedInput.error.issues)
             return Response.json({ message: "Invalid input!!!", details: parsedInput.error.issues }, { status: 400 });
         }
 
@@ -113,7 +118,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { doctorId: 
     }
 };
 
-export async function DELETE(req: NextRequest, { params }: { params: { doctorId: string } }) {
+export async function DELETE(req: NextRequest,
+    { params }: { params: Promise<{ doctorId: string }> }
+) {
     try {
         const token = await verifyUser(req);
 
@@ -132,7 +139,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { doctorId:
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const { doctorId } = params;
+        const { doctorId } = await params;
 
         // soft delete to maintain other related records
         await prisma.doctor.update({

@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
         const hashedPassword = bcrypt.hashSync(parsedInput.data.password, 10);
 
-        await prisma.user.create({
+        const doctorData = await prisma.user.create({
             data: {
                 email: parsedInput.data.email,
                 password: hashedPassword,
@@ -72,10 +72,13 @@ export async function POST(req: NextRequest) {
                         ...(parsedInput.data.verified && { verified: parsedInput.data.verified }),
                     }
                 }
+            },
+            include: {
+                doctor: true,
             }
         });
 
-        return Response.json({ message: "Successfully created the doctor!!!" }, { status: 201 });
+        return Response.json({ message: "Successfully created the doctor!!!", doctorData }, { status: 201 });
     }
     catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

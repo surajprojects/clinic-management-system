@@ -4,7 +4,7 @@ import axiosInstance from "@/utils/axios";
 import { useEffect, useState } from "react";
 import { errorHandle } from "@/utils/errors/errorHandle";
 
-export default function Dashboard() {
+export default function AdminDashboard() {
     return (
         <>
             <div>
