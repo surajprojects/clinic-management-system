@@ -1,6 +1,7 @@
 "use client"
 
 import { useSession } from "next-auth/react";
+import PatientsSideNav from "../patients/patientsSideNav";
 import AdminSideNav from "@/components/admin/adminSideNav";
 import DoctorsSideNav from "@/components/doctors/doctorsSideNav";
 import ReceptionistsSideNav from "@/components/receptionists/receptionistsSideNav";
@@ -13,6 +14,8 @@ export default function SideNav() {
                 return <AdminSideNav />;
             case "DOCTOR":
                 return <DoctorsSideNav />;
+            case "PATIENT":
+                return <PatientsSideNav />;
             case "RECEPTIONIST":
                 return <ReceptionistsSideNav />;
             default:

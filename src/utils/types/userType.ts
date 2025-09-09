@@ -1,8 +1,8 @@
 export interface UserData {
     id: string,
     address: string,
-    dob: string,
     email: string,
+    dob: string,
     fatherName: string,
     motherName: string,
     gender: string,

@@ -1,9 +1,9 @@
 import prisma from "@/db";
 import bcrypt from "bcryptjs";
+import { NextRequest } from "next/server";
+import { verifyUser } from "@/lib/apiAuth";
 import { Prisma } from "@/db/generated/prisma";
 import { PatientFormInput, patientFormInput } from "@/utils/validators/patientInput";
-import { verifyUser } from "@/lib/apiAuth";
-import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
     try {
@@ -13,7 +13,18 @@ export async function GET(req: NextRequest) {
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const allPatients = await prisma.patient.findMany({});
+        const allPatients = await prisma.patient.findMany({
+            where: {
+                isActive: true,
+            },
+            include: {
+                user: true,
+                doctors: true,
+                records: true,
+                invoices: true,
+                appointments: true,
+            },
+        });
 
         if (allPatients.length <= 0) {
             return Response.json({ message: "Patients not found!!!" }, { status: 404 });
@@ -38,7 +49,7 @@ export async function POST(req: NextRequest) {
 
         const hashedPassword = bcrypt.hashSync(parsedInput.data.password, 10);
 
-        await prisma.user.create({
+        const patientData = await prisma.user.create({
             data: {
                 email: parsedInput.data.email,
                 password: hashedPassword,
@@ -53,7 +64,7 @@ export async function POST(req: NextRequest) {
             }
         });
 
-        return Response.json({ message: "Successfully created the patient!!!" }, { status: 201 });
+        return Response.json({ message: "Successfully created the patient!!!", patientData }, { status: 201 });
     }
     catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

@@ -5,7 +5,9 @@ import { verifyUser } from "@/lib/apiAuth";
 import { Prisma } from "@/db/generated/prisma";
 import { PatientFormInputEdit, patientFormInputEdit } from "@/utils/validators/patientInput";
 
-export async function GET(req: NextRequest, { params }: { params: { patientId: string } }) {
+export async function GET(req: NextRequest,
+    { params }: { params: Promise<{ patientId: string }> }
+) {
     try {
         const token = await verifyUser(req);
 
@@ -13,15 +15,20 @@ export async function GET(req: NextRequest, { params }: { params: { patientId: s
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const { patientId } = params;
+        const { patientId } = await params;
 
         const patientData = await prisma.patient.findUnique({
             where: {
-                id: patientId
+                id: patientId,
+                isActive: true,
             },
             include: {
                 user: true,
-            }
+                doctors: true,
+                records: true,
+                invoices: true,
+                appointments: true,
+            },
         });
 
         if (!patientData) {
@@ -36,7 +43,9 @@ export async function GET(req: NextRequest, { params }: { params: { patientId: s
     }
 };
 
-export async function PATCH(req: NextRequest, { params }: { params: { patientId: string } }) {
+export async function PATCH(req: NextRequest,
+    { params }: { params: Promise<{ patientId: string }> }
+) {
     try {
         const token = await verifyUser(req);
 
@@ -55,7 +64,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { patientId:
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const { patientId } = params;
+        const { patientId } = await params;
 
         const data: PatientFormInputEdit = await req.json();
         const parsedInput = patientFormInputEdit.safeParse(data);
@@ -67,6 +76,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { patientId:
         const patientData = await prisma.user.update({
             where: {
                 id: patientId,
+                role: "PATIENT",
             },
             data: {
                 ...(parsedInput.data.email && { email: parsedInput.data.email }),
@@ -78,6 +88,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { patientId:
                 ...(parsedInput.data.mobileNo && { mobileNo: parsedInput.data.mobileNo }),
                 ...(parsedInput.data.fatherName && { fatherName: parsedInput.data.fatherName }),
                 ...(parsedInput.data.motherName && { motherName: parsedInput.data.motherName }),
+            },
+            include: {
+                patient: true,
             }
         });
 

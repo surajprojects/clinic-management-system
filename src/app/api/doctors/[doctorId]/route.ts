@@ -91,6 +91,7 @@ export async function PATCH(req: NextRequest,
         const doctorData = await prisma.user.update({
             where: {
                 id: foundDoctor.id,
+                role: "DOCTOR",
             },
             data: {
                 ...(parsedInput.data.email && { email: parsedInput.data.email }),
