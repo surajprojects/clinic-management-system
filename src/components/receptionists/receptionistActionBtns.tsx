@@ -7,15 +7,15 @@ import { useRouter } from "next/navigation";
 import { errorHandle } from "@/utils/errors/errorHandle";
 import { TrashIcon, PencilIcon } from "@heroicons/react/24/outline"
 
-export default function DoctorActionBtns({ doctorId }: { doctorId: string }) {
+export default function ReceptionistActionBtns({ receptionistId }: { receptionistId: string }) {
     const router = useRouter();
 
     const handleDelete = async () => {
         try {
-            const result = await axiosInstance.delete(`/doctors/${doctorId}`);
+            const result = await axiosInstance.delete(`/receptionists/${receptionistId}`);
             if (result.status === 200) {
-                toast.success("Doctor deleted successfully!");
-                router.push("/admin/doctors");
+                toast.success("Receptionist deleted successfully!");
+                router.push("/admin/receptionists");
             }
         } catch (error) {
             errorHandle(error);
@@ -25,7 +25,7 @@ export default function DoctorActionBtns({ doctorId }: { doctorId: string }) {
     return (
         <>
             <div className="flex items-center">
-                <Link href={`/admin/doctors/${doctorId}/edit`} className="hover:text-blue-500"><PencilIcon className="w-6 h-6 mx-2" /></Link>
+                <Link href={`/admin/receptionists/${receptionistId}/edit`} className="hover:text-blue-500"><PencilIcon className="w-6 h-6 mx-2" /></Link>
                 <button onClick={handleDelete} className="hover:text-red-500 hover:cursor-pointer"><TrashIcon className="w-6 h-6" /></button>
             </div>
         </>

@@ -3,16 +3,16 @@
 import axiosInstance from "@/utils/axios";
 import { useEffect, useState } from "react";
 import { UserPlusIcon } from "@heroicons/react/24/outline"
-import DoctorsTable from "@/components/doctors/doctorsTable";
+import ReceptionistsTable from "@/components/receptionists/receptionistsTable";
 
-export default function Doctors() {
-    const [doctorsList, setDoctorsList] = useState([]);
+export default function Students() {
+    const [receptionistsList, setReceptionistsList] = useState([]);
     useEffect(() => {
         const getData = async () => {
             try {
-                const result = await axiosInstance.get("/doctors");
-                const data = result.data.allDoctors;
-                setDoctorsList(data);
+                const result = await axiosInstance.get("/receptionists");
+                const data = result.data.allReceptionists;
+                setReceptionistsList(data);
             } catch (error) {
                 console.error("Failed to submit the form!", error);
             }
@@ -23,13 +23,13 @@ export default function Doctors() {
         <>
             <div>
                 <div className="border-b-2 border-gray-400 pb-2 mb-6 flex justify-between">
-                    <p className="text-3xl font-medium">Doctors</p>
-                    <a href="/admin/doctors/new" className="hover:cursor-pointer rounded-full flex items-center hover:shadow">
+                    <p className="text-3xl font-medium">Receptionists</p>
+                    <a href="/admin/receptionists/new" className="hover:cursor-pointer rounded-full flex items-center hover:shadow">
                         <UserPlusIcon className="w-9 h-6 text-black" />
                     </a>
                 </div>
                 <div>
-                    <DoctorsTable doctorsData={doctorsList} />
+                    <ReceptionistsTable receptionistsData={receptionistsList} />
                 </div>
             </div>
         </>

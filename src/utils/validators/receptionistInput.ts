@@ -12,25 +12,11 @@ export const receptionistFormInput = z.object({
     fatherName: z.string().optional(),
     motherName: z.string().optional(),
     address: z.string().optional(),
-    verified: z.boolean().optional(),
     mobileNo: z.string().regex(/^\d{10}$/, "Mobile No. must be 10 digits number string. Example - '1234567890'"),
 }).strict();
 
 export type ReceptionistFormInput = z.infer<typeof receptionistFormInput>;
 
-export const receptionistFormInputEdit = z.object({
-    deskNumber: z.string().optional(),
-    email: z.string().optional(),
-    password: z.string().min(8).max(32).optional(),
-    name: z.string().optional(),
-    dob: z.string().optional(),
-    gender: z.enum([...Object.values(Gender)] as [Gender, ...Gender[]]).optional(),
-    shift: z.enum([...Object.values(Shift)] as [Shift, ...Shift[]]).optional(),
-    fatherName: z.string().optional(),
-    motherName: z.string().optional(),
-    address: z.string().optional(),
-    verified: z.boolean().optional(),
-    mobileNo: z.string().regex(/^\d{10}$/, "Mobile No. must be 10 digits number string. Example - '1234567890'").optional(),
-}).strict();
+export const receptionistFormInputEdit = receptionistFormInput.partial().strict();
 
 export type ReceptionistFormInputEdit = z.infer<typeof receptionistFormInputEdit>;

@@ -4,28 +4,10 @@ import { use } from "react";
 import { toast } from "react-toastify";
 import axiosInstance from "@/utils/axios";
 import { useRouter } from "next/navigation";
+import { DoctorData } from "@/utils/types/doctorType";
 import DoctorForm from "@/components/doctors/doctorForm";
 import { errorHandle } from "@/utils/errors/errorHandle";
 import { DoctorFormInputEdit } from "@/utils/validators/doctorInput";
-import { DoctorData } from "@/utils/types/doctorType";
-
-//         name: "",
-//         fatherName: "",
-//         motherName: "",
-//         dob: "",
-//         gender: "",
-//         mobileNo: "",
-//         email: "",
-//         address: "",
-//         password: "",
-//         specialization: "",
-//         registrationNo: "",
-//         yearOfExperience: 0,
-//         verified: false,
-
-function DoctorFormEditFilter(formData: DoctorFormInputEdit, prefetchData: DoctorData) {
-
-};
 
 export default function EditDoctor({
     params

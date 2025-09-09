@@ -3,22 +3,22 @@
 import axiosInstance from "@/utils/axios";
 import { useRouter } from "next/navigation";
 import Spinner from "@/components/ui/spinner";
-import { Gender } from "@/db/generated/prisma";
 import CardField from "@/components/ui/cardField";
-import { DoctorData } from "@/utils/types/doctorType";
+import { Gender, Shift } from "@/db/generated/prisma";
 import { errorHandle } from "@/utils/errors/errorHandle";
 import { ChangeEvent, useEffect, useState } from "react";
-import { DoctorFormInput, DoctorFormInputEdit } from "@/utils/validators/doctorInput";
+import { ReceptionistData } from "@/utils/types/receptionistType";
+import { ReceptionistFormInput, ReceptionistFormInputEdit } from "@/utils/validators/receptionistInput";
 
-export default function DoctorForm({
+export default function ReceptionistForm({
     handleSubmitForm,
     handleSubmitFormEdit,
-    doctorId,
+    receptionistId,
     isEdit = false
 }: {
-    handleSubmitForm?: (formData: DoctorFormInput, id?: string) => Promise<boolean>,
-    handleSubmitFormEdit?: (formData: DoctorFormInputEdit, id: string, prefetchData: DoctorData) => Promise<boolean>,
-    doctorId?: string,
+    handleSubmitForm?: (formData: ReceptionistFormInput, id?: string) => Promise<boolean>,
+    handleSubmitFormEdit?: (formData: ReceptionistFormInputEdit, id: string, prefetchData: ReceptionistData) => Promise<boolean>,
+    receptionistId?: string,
     isEdit?: boolean
 }) {
     const initialData = {
@@ -31,15 +31,13 @@ export default function DoctorForm({
         email: "",
         address: "",
         password: "",
-        specialization: "",
-        registrationNo: "",
-        yearOfExperience: 0,
-        verified: false,
+        shift: "",
+        deskNumber: "",
     };
 
     const router = useRouter();
     const [formData, setFormData] = useState(initialData);
-    const [prefetchData, setPrefetchData] = useState<DoctorData>();
+    const [prefetchData, setPrefetchData] = useState<ReceptionistData>();
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -47,8 +45,8 @@ export default function DoctorForm({
             const getData = async () => {
                 try {
                     setIsLoading(true);
-                    const result = await axiosInstance.get(`/doctors/${doctorId}`);
-                    const data: DoctorData = result.data.doctorData;
+                    const result = await axiosInstance.get(`/receptionists/${receptionistId}`);
+                    const data: ReceptionistData = result.data.receptionistData;
                     setPrefetchData(data);
                     setFormData((prevData) => {
                         return {
@@ -61,10 +59,8 @@ export default function DoctorForm({
                             mobileNo: data.user.mobileNo ? data.user.mobileNo : "",
                             email: data.user.email ? data.user.email : "",
                             address: data.user.address ? data.user.address : "",
-                            specialization: data.specialization ? data.specialization : "",
-                            registrationNo: data.registrationNo ? data.registrationNo : "",
-                            yearOfExperience: typeof data.yearOfExperience === "number" && data.yearOfExperience > 0 ? data.yearOfExperience : 0,
-                            verified: typeof data.verified === "boolean" && data.verified,
+                            shift: data.shift ? data.shift : "",
+                            deskNumber: data.deskNumber ? data.deskNumber : "",
                         }
                     });
                     setIsLoading(false);
@@ -75,7 +71,7 @@ export default function DoctorForm({
             };
             getData();
         };
-    }, [isEdit, doctorId]);
+    }, [isEdit, receptionistId]);
 
     const handleChange = (evt: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const fieldName = evt.target.name;
@@ -101,12 +97,17 @@ export default function DoctorForm({
                             throw new Error("Invalid gender");
                         }
 
-                        if (isEdit && doctorId && prefetchData && handleSubmitFormEdit) {
+                        if (!Object.values(Shift).includes(formData.shift as Shift)) {
+                            throw new Error("Invalid shift");
+                        }
+
+                        if (isEdit && receptionistId && prefetchData && handleSubmitFormEdit) {
                             const isSuccess = await handleSubmitFormEdit(
                                 {
                                     ...formData,
                                     gender: formData.gender as Gender,
-                                }, doctorId, prefetchData);
+                                    shift: formData.shift as Shift,
+                                }, receptionistId, prefetchData);
 
                             if (isSuccess) {
                                 setFormData(initialData)
@@ -118,7 +119,8 @@ export default function DoctorForm({
                                     {
                                         ...formData,
                                         gender: formData.gender as Gender,
-                                    }, doctorId);
+                                        shift: formData.shift as Shift,
+                                    }, receptionistId);
 
                                 if (isSuccess) {
                                     setFormData(initialData)
@@ -220,38 +222,32 @@ export default function DoctorForm({
                         onChangeFunc={handleChange}
                         isRequired={!isEdit}
                     />
-                    {/* Specialization */}
-                    <CardField
-                        id="specialization"
-                        title="Specialization"
-                        textHolder="Enter the specialization"
-                        fieldValue={formData.specialization}
-                        onChangeFunc={handleChange}
-                        isRequired={!isEdit}
-                    />
-                    {/* Registration Number */}
-                    <CardField
-                        id="registrationNo"
-                        title="Registration No."
-                        textHolder="Enter the registration number"
-                        fieldValue={formData.registrationNo}
-                        onChangeFunc={handleChange}
-                        isRequired={!isEdit}
-                    />
-                    {/* Verified Status */}
+                    {/* Shift */}
                     <div>
-                        <label htmlFor="verified">Verified</label>
-                        <input
-                            type="checkbox"
-                            name="verified"
-                            id="verified"
-                            checked={formData.verified}
-                            onChange={() => setFormData((prevData) => {
-                                return { ...prevData, verified: !prevData.verified };
+                        <label htmlFor="shift">Shift{!isEdit && "*"}</label>
+                        <select
+                            name="shift"
+                            id="shift"
+                            value={formData.shift}
+                            onChange={handleChange}
+                            className="mx-2 border-2 rounded-md px-1"
+                            required={!isEdit}
+                        >
+                            <option value="" disabled>Select Shift</option>
+                            {[...Object.values(Shift)].map((opt, idx) => {
+                                return <option key={idx} value={opt}>{opt}</option>
                             })}
-                            className="mx-2"
-                        />
+                        </select>
                     </div>
+                    {/* Desk Number */}
+                    <CardField
+                        id="deskNumber"
+                        title="Desk No."
+                        textHolder="ABC123"
+                        fieldValue={formData.deskNumber}
+                        onChangeFunc={handleChange}
+                        isRequired={false}
+                    />
                     {/* Buttons */}
                     <div className="col-span-4 my-5">
                         <button type="submit" className="bg-green-500 text-white px-2 py-1 rounded-md shadow hover:cursor-pointer">Submit</button>

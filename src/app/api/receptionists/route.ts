@@ -1,8 +1,8 @@
 import prisma from "@/db";
 import bcrypt from "bcryptjs";
-import { Prisma } from "@/db/generated/prisma";
-import { verifyUser } from "@/lib/apiAuth";
 import { NextRequest } from "next/server";
+import { verifyUser } from "@/lib/apiAuth";
+import { Prisma } from "@/db/generated/prisma";
 import { ReceptionistFormInput, receptionistFormInput } from "@/utils/validators/receptionistInput";
 
 export async function GET(req: NextRequest) {
@@ -13,7 +13,14 @@ export async function GET(req: NextRequest) {
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const allReceptionists = await prisma.receptionist.findMany({});
+        const allReceptionists = await prisma.receptionist.findMany({
+            where: {
+                isActive: true,
+            },
+            include: {
+                user: true,
+            }
+        });
 
         if (allReceptionists.length <= 0) {
             return Response.json({ message: "Receptionists not found!!!" }, { status: 404 });
@@ -55,7 +62,7 @@ export async function POST(req: NextRequest) {
 
         const hashedPassword = bcrypt.hashSync(parsedInput.data.password, 10);
 
-        await prisma.user.create({
+        const receptionistData = await prisma.user.create({
             data: {
                 email: parsedInput.data.email,
                 password: hashedPassword,
@@ -73,10 +80,13 @@ export async function POST(req: NextRequest) {
                         ...(parsedInput.data.deskNumber && { deskNumber: parsedInput.data.deskNumber }),
                     }
                 }
-            }
+            },
+            include: {
+                receptionist: true,
+            },
         });
 
-        return Response.json({ message: "Successfully created the receptionist!!!" }, { status: 201 });
+        return Response.json({ message: "Successfully created the receptionist!!!", receptionistData }, { status: 201 });
     }
     catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

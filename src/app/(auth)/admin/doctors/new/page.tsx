@@ -12,7 +12,6 @@ export default function NewDoctor() {
     const handleSubmit = async (formData: DoctorFormInput) => {
         try {
             const result = await axiosInstance.post("/doctors", formData);
-            console.log(result)
             router.push(`/admin/doctors/${result.data.doctorData.doctor.id}/profile`);
             toast.success("Doctor created successfully!!!");
             return true;

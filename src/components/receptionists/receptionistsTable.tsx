@@ -1,9 +1,8 @@
-import DoctorsTableField from "./doctorsTableField";
-import DoctorActionBtns from "./doctorActionBtns";
-import { DoctorsList } from "@/utils/types/doctorType";
-import { CheckBadgeIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import ReceptionistActionBtns from "./receptionistActionBtns";
+import ReceptionistsTableField from "./receptionistsTableField";
+import { ReceptionistsList } from "@/utils/types/receptionistType";
 
-export default function DoctorsTable({ doctorsData }: { doctorsData: DoctorsList }) {
+export default function ReceptionistsTable({ receptionistsData }: { receptionistsData: ReceptionistsList }) {
     return (
         <>
             <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -26,13 +25,10 @@ export default function DoctorsTable({ doctorsData }: { doctorsData: DoctorsList
                                 Email
                             </th>
                             <th scope="col" className="px-6 py-3">
-                                Specialization
+                                Staff
                             </th>
                             <th scope="col" className="px-6 py-3">
-                                Registration No
-                            </th>
-                            <th scope="col" className="px-6 py-3">
-                                Verified
+                                Desk Number
                             </th>
                             <th scope="col" className="px-6 py-3">
                                 Action
@@ -40,38 +36,35 @@ export default function DoctorsTable({ doctorsData }: { doctorsData: DoctorsList
                         </tr>
                     </thead>
                     <tbody>
-                        {doctorsData.length > 0 ?
-                            doctorsData.map((doctor, idx: number) => {
+                        {receptionistsData.length > 0 ?
+                            receptionistsData.map((receptionist, idx: number) => {
                                 return <tr key={idx} className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700 border-gray-200">
                                     <td className="px-6 py-4">
                                         {idx + 1}
                                     </td>
-                                    <DoctorsTableField doctorId={doctor.id} name={doctor.user.name} />
+                                    <ReceptionistsTableField receptionistId={receptionist.id} name={receptionist.user.name} />
                                     <td className="px-6 py-4">
-                                        {doctor.user.gender}
+                                        {receptionist.user.gender}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {doctor.user.mobileNo}
+                                        {receptionist.user.mobileNo}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {doctor.user.email}
+                                        {receptionist.user.email}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {doctor.specialization}
+                                        {receptionist.shift}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {doctor.registrationNo}
+                                        {receptionist.deskNumber}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {doctor.verified ? <CheckBadgeIcon className="w-6 h-6 text-green-500" /> : <XCircleIcon className="w-6 h-6 text-red-500" />}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <DoctorActionBtns doctorId={doctor.id} />
+                                        <ReceptionistActionBtns receptionistId={receptionist.id} />
                                     </td>
                                 </tr>
                             })
                             :
-                            <tr className="h-14"><td colSpan={9} className="text-center">No doctors found!!!</td></tr>
+                            <tr className="h-14"><td colSpan={8} className="text-center">No receptionists found!!!</td></tr>
                         }
                     </tbody>
                 </table>

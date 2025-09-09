@@ -22,4 +22,3 @@ export type DoctorFormInput = z.infer<typeof doctorFormInput>;
 export const doctorFormInputEdit = doctorFormInput.partial().strict();
 
 export type DoctorFormInputEdit = z.infer<typeof doctorFormInputEdit>;
-

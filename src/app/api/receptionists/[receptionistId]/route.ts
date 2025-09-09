@@ -5,7 +5,9 @@ import { verifyUser } from "@/lib/apiAuth";
 import { Prisma } from "@/db/generated/prisma";
 import { ReceptionistFormInputEdit, receptionistFormInputEdit } from "@/utils/validators/receptionistInput";
 
-export async function GET(req: NextRequest, { params }: { params: { receptionistId: string } }) {
+export async function GET(req: NextRequest,
+    { params }: { params: Promise<{ receptionistId: string }> }
+) {
     try {
         const token = await verifyUser(req);
 
@@ -13,11 +15,12 @@ export async function GET(req: NextRequest, { params }: { params: { receptionist
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const { receptionistId } = params;
+        const { receptionistId } = await params;
 
         const receptionistData = await prisma.receptionist.findUnique({
             where: {
                 id: receptionistId,
+                isActive: true,
             },
             include: {
                 user: true,
@@ -36,7 +39,9 @@ export async function GET(req: NextRequest, { params }: { params: { receptionist
     }
 };
 
-export async function PATCH(req: NextRequest, { params }: { params: { receptionistId: string } }) {
+export async function PATCH(req: NextRequest,
+    { params }: { params: Promise<{ receptionistId: string }> }
+) {
     try {
         const token = await verifyUser(req);
 
@@ -55,7 +60,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { receptioni
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const { receptionistId } = params;
+        const { receptionistId } = await params;
 
         const data: ReceptionistFormInputEdit = await req.json();
         const parsedInput = receptionistFormInputEdit.safeParse(data);
@@ -91,6 +96,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { receptioni
         const receptionistData = await prisma.user.update({
             where: {
                 id: foundReceptionist.id,
+                role: "RECEPTIONIST",
             },
             data: {
                 ...(parsedInput.data.email && { email: parsedInput.data.email }),
@@ -102,7 +108,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { receptioni
                 ...(parsedInput.data.mobileNo && { mobileNo: parsedInput.data.mobileNo }),
                 ...(parsedInput.data.fatherName && { fatherName: parsedInput.data.fatherName }),
                 ...(parsedInput.data.motherName && { motherName: parsedInput.data.motherName }),
-            }
+            },
+            include: {
+                receptionist: true,
+            },
         });
 
         return Response.json({ message: "Successfully updated the receptionist!!!", receptionistData }, { status: 200 });
@@ -118,7 +127,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { receptioni
     }
 };
 
-export async function DELETE(req: NextRequest, { params }: { params: { receptionistId: string } }) {
+export async function DELETE(req: NextRequest,
+    { params }: { params: Promise<{ receptionistId: string }> }
+) {
     try {
         const token = await verifyUser(req, ["ADMIN"]);
 
@@ -126,7 +137,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { reception
             return Response.json({ message: "Unauthorized!!!" }, { status: 401 });
         }
 
-        const { receptionistId } = params;
+        const { receptionistId } = await params;
 
         // soft delete to maintain other related records
         await prisma.receptionist.update({
